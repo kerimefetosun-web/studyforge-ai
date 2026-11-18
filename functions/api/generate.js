@@ -40,6 +40,22 @@ export async function onRequestPost({ request, env }) {
       max_tokens: type === 'quiz' ? 3200 : 2200,
       temperature: 0.25
     });
+    
+function normalizeQuiz(data) {
+  const questions = data.questions ?? data.sorular;
+
+  if (!Array.isArray(questions)) return data;
+
+  return {
+    questions: questions.map(q => ({
+      question: q.question ?? q.soru,
+      options: q.options ?? q.secenekler ?? q.şıklar,
+      answerIndex: q.answerIndex ?? q.dogruCevapIndex ?? q.dogruCevap,
+      explanation: q.explanation ?? q.aciklama ?? q.açıklama
+    }))
+  };
+}
+
     let data;
     try { data = parseModelJson(output); } catch { return json({ error: 'Model geçerli JSON üretemedi. Tekrar deneyin.' }, 502); }
     
