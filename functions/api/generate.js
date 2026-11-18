@@ -42,7 +42,32 @@ export async function onRequestPost({ request, env }) {
     });
     let data;
     try { data = parseModelJson(output); } catch { return json({ error: 'Model geçerli JSON üretemedi. Tekrar deneyin.' }, 502); }
-    if (!valid(type, data, count)) return json({ error: 'Model beklenen biçimde sonuç üretmedi. Tekrar deneyin.' }, 502);
+    
+if (!valid(type, data, count)) {
+  console.error('Model validation failed:', JSON.stringify({
+    type,
+    expectedCount: count,
+    actualCount: Array.isArray(data?.questions)
+      ? data.questions.length
+      : null,
+    keys: Object.keys(data || {}),
+    questions: Array.isArray(data?.questions)
+      ? data.questions.map((q, i) => ({
+          index: i,
+          hasQuestion: nonempty(q?.question),
+          optionCount: Array.isArray(q?.options)
+            ? q.options.length
+            : null,
+          answerIndex: q?.answerIndex,
+          hasExplanation: nonempty(q?.explanation)
+        }))
+      : null
+  }));
+  return json({
+    error: 'Model beklenen biçimde sonuç üretmedi. Tekrar deneyin.'
+  }, 502);
+}
+
     return json({ data, mode: 'ai' });
   } catch (e) {
     console.error('Workers AI request failed:', String(e?.message || e).slice(0, 250));
