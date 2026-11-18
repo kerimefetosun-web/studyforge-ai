@@ -57,7 +57,12 @@ function normalizeQuiz(data) {
 }
 
     let data;
-    try { data = parseModelJson(output); } catch { return json({ error: 'Model geçerli JSON üretemedi. Tekrar deneyin.' }, 502); }
+   try {
+  data = parseModelJson(output);
+  if (type === 'quiz') {
+    data = normalizeQuiz(data);
+  }
+}
     
 if (!valid(type, data, count)) {
   console.error('Model validation failed:', JSON.stringify({
